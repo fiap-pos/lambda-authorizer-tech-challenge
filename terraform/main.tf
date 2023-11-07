@@ -4,6 +4,14 @@ locals {
   handler_path = "br.com.fiap.techchallenge.lambdaauthorizer.APIGatewayAuthorizerHandler"
 }
 
+terraform {
+  backend "s3" {
+    bucket = "tech-challenge-61"
+    key    = "lambda-authorizer-tech-challenge/lambda.tfstate"
+    region = "us-east-1"
+  }
+}
+
 data "aws_iam_policy_document" "assume_lambda_authorizer_role" {
   statement {
     effect = "Allow"
