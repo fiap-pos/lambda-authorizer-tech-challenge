@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "environment" {
   type        = string
   description = "The environment to be built"
-  default = "dev"
+  default     = "dev"
 }
 
 variable "java_runtime" {
