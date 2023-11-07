@@ -40,10 +40,10 @@ resource "aws_lambda_function" "tech_challenge_lambda_authorizer" {
   source_code_hash = filesha256(local.target_jar_file_path)
 
 
-  # Buscar do SSM a url da aplicação de auth
-  #environment {
-  #  variables = {
-  #    foo = "bar"
-  #  }
-  #  }
+  #TODO: Buscar do SSM a url da aplicação de auth e adicionar a avariavel AUTH_URL
+  environment {
+    variables = {
+      AUTH_URL = "http://example.com"
+    }
+  }
 }

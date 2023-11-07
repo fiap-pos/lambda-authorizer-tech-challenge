@@ -2,6 +2,8 @@ package br.com.fiap.techchallenge.lambdaauthorizer;
 
 import br.com.fiap.techchallenge.lambdaauthorizer.io.AuthPolicy;
 import br.com.fiap.techchallenge.lambdaauthorizer.io.TokenAuthorizerContext;
+import br.com.fiap.techchallenge.lambdaauthorizer.models.UserRole;
+import br.com.fiap.techchallenge.lambdaauthorizer.services.AuthClient;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
@@ -11,11 +13,6 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
 
         String token = input.getAuthorizationToken();
 
-        // Access auth to get token info
-
-        String principalId = "xxxx";
-
-
         String methodArn = input.getMethodArn();
         String[] arnPartials = methodArn.split(":");
         String region = arnPartials[3];
@@ -23,23 +20,22 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
         String[] apiGatewayArnPartials = arnPartials[5].split("/");
         String restApiId = apiGatewayArnPartials[0];
         String stage = apiGatewayArnPartials[1];
-        String httpMethod = apiGatewayArnPartials[2];
+        AuthPolicy.HttpMethod httpMethod = AuthPolicy.HttpMethod.valueOf(apiGatewayArnPartials[2]);
+
         String resource = ""; // root resource
         if (apiGatewayArnPartials.length == 4) {
             resource = apiGatewayArnPartials[3];
         }
 
-        // this function must generate a policy that is associated with the recognized principal user identifier.
-        // depending on your use case, you might store policies in a DB, or generate them on the fly
+        var authClient = new AuthClient();
+        var user = authClient.getUserInfo(token);
 
-        // keep in mind, the policy is cached for 5 minutes by default (TTL is configurable in the authorizer)
-        // and will apply to subsequent calls to any method/resource in the RestApi
-        // made with the same token
+        String principalId = user.getId();
 
-        // the example policy below denies access to all resources in the RestApi
-        // return new AuthPolicy(principalId, AuthPolicy.PolicyDocument.getDenyAllPolicy(region, awsAccountId, restApiId, stage));
+        if (user.getRoles().contains(UserRole.GUEST) || user.getRoles().contains(UserRole.CUSTOMER)) {
+            return new AuthPolicy(principalId, AuthPolicy.PolicyDocument.getAllowOnePolicy(region, awsAccountId, restApiId, stage, httpMethod, resource));
+        }
 
-        // the example policy below allows access to all resources in the RestApi
-        return new AuthPolicy(principalId, AuthPolicy.PolicyDocument.getAllowAllPolicy(region, awsAccountId, restApiId, stage));
+        return new AuthPolicy(principalId, AuthPolicy.PolicyDocument.getDenyOnePolicy(region, awsAccountId, restApiId, stage, httpMethod, resource));
     }
 }
