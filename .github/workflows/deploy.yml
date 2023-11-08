@@ -28,6 +28,8 @@ jobs:
       - name: Build application
         run: ./mvnw clean package
 
+      - name: Upload Jar to S3
+        run: aws s3 cp target/lambda-authorizer-1.0-SNAPSHOT.jar s3://tech-challenge-61/lambda-authorizer-tech-challenge/lambda.jar
 
       - name: set up terraform
         uses: hashicorp/setup-terraform@v2
