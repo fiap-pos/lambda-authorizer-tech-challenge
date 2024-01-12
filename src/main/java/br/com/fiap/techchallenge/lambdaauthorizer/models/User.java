@@ -11,6 +11,7 @@ public class User {
     private List<UserRole> roles;
 
     public User() {
+        this.roles = List.of();
     }
 
     public User(String name, String username, String email, List<UserRole> roles) {
