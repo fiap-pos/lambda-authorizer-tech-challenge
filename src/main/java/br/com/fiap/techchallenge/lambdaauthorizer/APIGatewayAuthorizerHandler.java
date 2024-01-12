@@ -7,6 +7,8 @@ import br.com.fiap.techchallenge.lambdaauthorizer.services.AuthClient;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
+import java.util.Arrays;
+
 public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthorizerContext, AuthPolicy> {
     @Override
     public AuthPolicy handleRequest(TokenAuthorizerContext input, Context context) {
@@ -14,6 +16,9 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
         var logger = context.getLogger();
 
         String token = input.getAuthorizationToken();
+
+        logger.log("Token: " + token + "\n");
+        logger.log("Method ARN: " + input.getMethodArn() + "\n");
 
         String methodArn = input.getMethodArn();
         String[] arnPartials = methodArn.split(":");
@@ -25,8 +30,8 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
         AuthPolicy.HttpMethod httpMethod = AuthPolicy.HttpMethod.valueOf(apiGatewayArnPartials[2]);
 
         String resource = ""; // root resource
-        if (apiGatewayArnPartials.length == 4) {
-            resource = apiGatewayArnPartials[3];
+        if (apiGatewayArnPartials.length >= 4) {
+            resource = Arrays.stream(apiGatewayArnPartials).skip(3).reduce((a, b) -> a + "/" + b).get();
         }
 
         var authClient = new AuthClient(logger);
@@ -35,9 +40,10 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
         String principalId = user.getId();
 
         if (user.getRoles().contains(UserRole.GUEST) || user.getRoles().contains(UserRole.CUSTOMER)) {
+            logger.log("region: " + region + ", awsAccountId: " + awsAccountId + ", restApiId: " + restApiId + ", stage: " + stage + ", httpMethod: " + httpMethod + ", resource: " + resource + "\n");
             return new AuthPolicy(principalId, AuthPolicy.PolicyDocument.getAllowOnePolicy(region, awsAccountId, restApiId, stage, httpMethod, resource));
         }
-
+        logger.log("Policy denied");
         return new AuthPolicy(principalId, AuthPolicy.PolicyDocument.getDenyOnePolicy(region, awsAccountId, restApiId, stage, httpMethod, resource));
     }
 }
