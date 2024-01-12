@@ -11,6 +11,8 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
     @Override
     public AuthPolicy handleRequest(TokenAuthorizerContext input, Context context) {
 
+        var logger = context.getLogger();
+
         String token = input.getAuthorizationToken();
 
         String methodArn = input.getMethodArn();
@@ -27,7 +29,7 @@ public class APIGatewayAuthorizerHandler implements RequestHandler<TokenAuthoriz
             resource = apiGatewayArnPartials[3];
         }
 
-        var authClient = new AuthClient();
+        var authClient = new AuthClient(logger);
         var user = authClient.getUserInfo(token);
 
         String principalId = user.getId();

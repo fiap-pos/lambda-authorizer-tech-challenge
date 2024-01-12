@@ -1,5 +1,6 @@
 package br.com.fiap.techchallenge.lambdaauthorizer.services;
 
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import br.com.fiap.techchallenge.lambdaauthorizer.models.User;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,19 +14,25 @@ import java.io.IOException;
 
 public class AuthClient {
 
-    private String baseUrl;
+    private final String baseUrl;
 
-    private OkHttpClient client;
+    private final OkHttpClient client;
 
-    private ObjectMapper responseMapper;
+    private final ObjectMapper responseMapper;
 
-    public AuthClient() {
+    private final LambdaLogger logger;
+
+    public AuthClient(LambdaLogger logger) {
+        this.logger = logger;
         client = new OkHttpClient();
         baseUrl = System.getenv("AUTH_URL");
         responseMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     public User getUserInfo(String token) throws RuntimeException {
+
+        logger.log("Calling external url: " + baseUrl + "/auth/info\n");
+
         var request = getRequest("/auth/info", token);
 
         Call call = client.newCall(request);
@@ -34,6 +41,8 @@ public class AuthClient {
             Response response = call.execute();
             return parseResponseBody(response);
         } catch (IOException ex) {
+            logger.log(ex.getMessage()+"\n");
+            logger.log(ex +"\n");
             throw new RuntimeException(ex);
         }
     }
@@ -49,8 +58,5 @@ public class AuthClient {
     private User parseResponseBody(Response response) throws IOException {
         return responseMapper.readValue(response.body().byteStream(), User.class);
     }
-
-
-
 
 }
