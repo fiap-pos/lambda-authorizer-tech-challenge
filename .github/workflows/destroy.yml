@@ -17,9 +17,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-    #  - name: Dowload Jar From S3
-    #    run: aws s3 cp s3://tech-challenge-61/lambda-authorizer-tech-challenge/lambda.jar target/lambda-authorizer-1.0-SNAPSHOT.jar
-
       - name: set up terraform
         uses: hashicorp/setup-terraform@v2
         with:

@@ -22,3 +22,14 @@ variable "application_tag_name" {
   default     = "tech-challenge-lambda-authorizer"
 }
 
+variable "auth_nlb_name" {
+  type        = string
+  description = "Name of the auth NLB"
+  default     = "nlb-auth-service"
+}
+
+variable "eks_vpc_name" {
+    type        = string
+    description = "Name of the EKS VPC"
+    default     = "vpc-tech-challenge-61-eks"
+}

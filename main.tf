@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
-    bucket = "tech-challenge-61"
-    key    = "lambda-authorizer-tech-challenge/lambda.tfstate"
+    bucket = "vwnunes-tech-challenge-61"
+    key    = "infra-eks-tech-challenge/lambda-authorizer.tfstate"
     region = "us-east-1"
   }
 }
